@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from .blocks import create_downblock, create_residualblock, create_upblock
+from .blocks import create_downblock, create_resblock, create_upblock
 from .noise_embedding import create_sin_embedding_fun
 
 
@@ -16,16 +16,29 @@ class UNet(nn.Module):
             in_channels=3, out_channels=32, kernel_size=1, device=device
         )
 
-        self.d1 = create_downblock(out_channels=32, rblocks=2, device=device)
-        self.d2 = create_downblock(out_channels=64, rblocks=2, device=device)
-        self.d3 = create_downblock(out_channels=96, rblocks=2, device=device)
+        kwargs = dict(rblocks=2, device=device)
 
-        self.r1 = create_residualblock(out_channels=128, device=device)
-        self.r2 = create_residualblock(out_channels=128, device=device)
+        self.d1 = create_downblock(in_channels=64, out_channels=32, **kwargs)
+        self.d2 = create_downblock(in_channels=32, out_channels=64, **kwargs)
+        self.d3 = create_downblock(in_channels=64, out_channels=96, **kwargs)
 
-        self.u3 = create_upblock(out_channels=96, device=device)
-        self.u2 = create_upblock(out_channels=64, device=device)
-        self.u1 = create_upblock(out_channels=32, device=device)
+        self.r1 = create_resblock(
+            in_channels=96, out_channels=128, device=device
+        )
+        self.r2 = create_resblock(
+            in_channels=128, out_channels=128, device=device
+        )
+
+        # upblock take both x and downblock and concat as input
+        self.u3 = create_upblock(
+            in_channels=128, downblock_channels=96, out_channels=96, **kwargs
+        )
+        self.u2 = create_upblock(
+            in_channels=96, downblock_channels=64, out_channels=64, **kwargs
+        )
+        self.u1 = create_upblock(
+            in_channels=64, downblock_channels=32, out_channels=32, **kwargs
+        )
 
         self.c_end = nn.Conv2d(
             in_channels=32, out_channels=3, kernel_size=1, device=device
@@ -54,11 +67,10 @@ class UNet(nn.Module):
 
         x_input, noise_var = x_input.to(self.device), noise_var.to(self.device)
 
-        # import pdb; pdb.set_trace()
-
         noise_emb = self.embedding_fun(noise_var)
         noise_emb = self.noise_upsample(noise_emb)
 
+        # (batch, 64, 64, 64)
         x = torch.cat([self.c_start(x_input), noise_emb], dim=1)
 
         x, d_res_1 = self.d1(x)

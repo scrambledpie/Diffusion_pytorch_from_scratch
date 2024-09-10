@@ -4,7 +4,7 @@ import torch
 
 from diffusion.blocks import (
     create_downblock,
-    create_residualblock,
+    create_resblock,
     create_upblock,
 )
 
@@ -12,17 +12,13 @@ from diffusion.blocks import (
 class TestBlocks(unittest.TestCase):
     def test_residual_block(self):
         """ Make sure the residual block preserves shape """
-        batch_size = 128
-        num_channels = 3
-        height = 64
-        width = 64
-        x_minibatch = torch.rand((batch_size, num_channels, height, width))
+        x_minibatch = torch.rand((128, 3, 63, 63))
 
-        r1_block = create_residualblock(out_channels=num_channels, device="cpu")
+        r1_block = create_resblock(in_channels=3, out_channels=3, device="cpu")
         x_1 = r1_block(x_minibatch)
         assert x_minibatch.shape == x_1.shape
 
-        r1_block = create_residualblock(out_channels=6, device="cpu")
+        r1_block = create_resblock(in_channels=3, out_channels=6, device="cpu")
         x_1 = r1_block(x_minibatch)
         for i in range(4):
             if i ==1:
@@ -39,8 +35,15 @@ class TestBlocks(unittest.TestCase):
         x_minibatch = torch.rand((batch_size, num_channels, height, width))
 
         # instantaite layers
-        d1_block = create_downblock(out_channels=6, rblocks=2, device="cpu")
-        u1_block = create_upblock(out_channels=num_channels, device="cpu")
+        d1_block = create_downblock(
+            in_channels=3, out_channels=6, rblocks=2, device="cpu"
+        )
+        u1_block = create_upblock(
+            in_channels=6,
+            downblock_channels=6,
+            out_channels=num_channels,
+            device="cpu",
+        )
 
         # execute layers
         x_1, rblock_outputs_1 = d1_block(x_minibatch)
