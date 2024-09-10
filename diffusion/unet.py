@@ -39,8 +39,8 @@ class UNet(nn.Module):
 
     def forward(
         self,
-        x_input:torch.tensor,
-        noise_var:torch.tensor,
+        x_input:torch.tensor,  # (batch, 3, 64, 64)
+        noise_var:torch.tensor,  # (batch, 1, 1, 1)
     ) -> torch.tensor:
 
         assert x_input.shape[1] == 3

@@ -19,7 +19,9 @@ class TestUNet(unittest.TestCase):
         unet = UNet(device=DEVICE)
 
         # output
-        x_predict = unet.forward(x_minibatch, noise_var)
+        # x_predict = unet.forward(x_minibatch, noise_var)
+        x_predict = unet(x_minibatch, noise_var)
+
 
         assert x_predict.shape == x_minibatch.shape
 
