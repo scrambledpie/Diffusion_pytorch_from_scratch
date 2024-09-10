@@ -4,7 +4,7 @@ import torch
 
 from diffusion.unet import UNet
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cpu"
 
 
 class TestUNet(unittest.TestCase):

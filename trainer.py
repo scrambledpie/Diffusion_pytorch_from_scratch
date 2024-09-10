@@ -6,7 +6,7 @@ import torch
 import torch.optim as optim
 import torch.nn.functional as F
 
-from diffusion.noise_schedule import cosine_schedule
+from diffusion.apply_noise import apply_noise
 from diffusion.unet import UNet
 from dataset.reshape_images import FLOWERS_DATASET
 
@@ -47,7 +47,7 @@ def train_model(
             checkpoint_file = CHECKPOINT_DIR / f"{epoch} epoch.pt"
             torch.save(model.state_dict(), f=checkpoint_file)
             print(
-                f"{epoch -1 }: epoch time: {epoch_time} seconds\n"
+                f"{epoch -1 }: epoch time: {epoch_time:.4} seconds\n"
                 f"Saved model: {checkpoint_file}\n"
             )
 
@@ -57,12 +57,7 @@ def train_model(
 
             # clean image and pure noise
             x_input = dataset[i*batchsize:(i+1)*batchsize, :, :, :].to(device)
-            x_noise = torch.normal(mean=torch.zeros_like(x_input)).to(device)
-
-            # get mixture ratios
-            diffusion_times = torch.rand((x_input.shape[0], 1, 1, 1)).to(device)
-            noise_sd, signal_sd = cosine_schedule(diffusion_times)
-            x_noisy = x_input * signal_sd + x_noise * noise_sd
+            x_noisy, noise_sd, x_noise = apply_noise(x_input)
 
             # forward
             optimizer.zero_grad()
@@ -74,21 +69,24 @@ def train_model(
             optimizer.step()
 
             batch_time = time.time() - batch_start
-            print(f"{epoch} {i}: {mse_loss:.3f} {batch_time:.3f} seconds")
+            print(f"{epoch}. {i}: {mse_loss:.3f} {batch_time:.3f} seconds")
 
 
 def main():
 
     dataset = FLOWERS_DATASET.to("cuda")
+    print(dataset.shape)
 
     model = UNet(device="cuda")
+    model.train(False)
     optimizer = optim.AdamW(model.parameters(), lr=0.001)
 
     train_model(
         model=model,
         optimizer=optimizer,
         dataset=dataset,
-        batchsize=800,
+        batchsize=819,
+        epochs=10000,
     )
 
 
