@@ -35,7 +35,7 @@ def train_model(
     epochs:int = 10,
     device:str="cuda",
 ):
-    num_batches = dataset.shape[0] // batchsize
+    num_batches = 1 + dataset.shape[0] // batchsize
     model.train()
 
     epoch_start = time.time()
@@ -60,7 +60,7 @@ def train_model(
             x_noise = torch.normal(mean=torch.zeros_like(x_input)).to(device)
 
             # get mixture ratios
-            diffusion_times = torch.rand((batchsize, 1, 1, 1)).to(device)
+            diffusion_times = torch.rand((x_input.shape[0], 1, 1, 1)).to(device)
             noise_sd, signal_sd = cosine_schedule(diffusion_times)
             x_noisy = x_input * signal_sd + x_noise * noise_sd
 
