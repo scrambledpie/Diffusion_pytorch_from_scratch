@@ -3,7 +3,7 @@ import unittest
 import torch
 
 from diffusion.unet import UNet
-from diffusion.utils import get_shape
+from tests.utils import get_shape
 
 DEVICE = "cpu"
 
