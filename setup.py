@@ -6,7 +6,7 @@ setup(
     url='https://github.com/scrambledpie/Diffusion.git',
     author='Michael Pearce',
     author_email='scrambledpie@gmail.com',
-    description='Diffusiopn in Pytorch',
+    description='Diffusion in Pytorch From Scratch',
     packages=find_packages("."),
     install_requires=[''],
 )

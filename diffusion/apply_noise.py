@@ -1,12 +1,12 @@
 import torch
 
-from diffusion.noise_schedule import cosine_schedule, linear_schedule
+from diffusion.noise_schedule import cosine_schedule
 
 
 def apply_noise(
     x_input: torch.Tensor,
-    times: list[float]|None=None,
-    ) -> tuple[torch.Tensor]:
+    times: list[float]|None = None,
+) -> tuple[torch.Tensor]:
     """
     Make the inputs ad targets for UNet
     loss = MSE( Unet(x_diffused, noise_sd***2) - x_noise )
@@ -23,7 +23,6 @@ def apply_noise(
     """
     device = x_input.device
     x_noise = torch.normal(mean=torch.zeros_like(x_input)).to(device)
-
 
     # get mixture ratios
     times_shape = (x_input.shape[0], 1, 1, 1)
