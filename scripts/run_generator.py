@@ -7,38 +7,57 @@ from diffusion.generate import generate_images
 from diffusion.plotting import plot_images
 from diffusion.unet import UNet
 
+from folders import CHECKPOINTS_DIR
 
-def get_latest_state_dict(
+
+def restore_latest_model(
     xp_id:int=None,
     epoch:int=None,
+    device:str="cpu"
 ) -> tuple[dict, int, int]:
     """
     Read the checkpoints folder, get the lastest checkpoint from the latest
     experiment.
-    """
-    checkpoint_dir = Path(__file__).parent.parent / "checkpoints"
 
+    WARNING: this code is fragile! It assumes the checkpoint folder hasn't got
+    anything other than checkpoint sub directories and epoch files!
+    e.g.
+        CHECKPOINTS_DIR
+          - 4_20240910_193059
+             - 1 epoch.pt
+             - 2 epoch.pt
+             - 3 epoch.pt
+          - 5_20240910_1935212
+             - 1 epoch.pt
+             - 2 epoch.pt
+             - 3 epoch.pt
+    """
     if xp_id is None:
-        xp_ids = [int(f.stem.split("_")[0]) for f in checkpoint_dir.glob("*")]
+        # if no xp_id provided, just get the latest one
+        xp_ids = [int(f.stem.split("_")[0]) for f in CHECKPOINTS_DIR.glob("*")]
         xp_id = max(xp_ids)
 
-    xp_dir = list(checkpoint_dir.glob(f"{xp_id}_*"))[0]
+    xp_dir = list(CHECKPOINTS_DIR.glob(f"{xp_id}_*"))[0]
 
     if epoch is None:
-        epochs = [int(f.stem.split(" ")[0]) for f in xp_dir.glob("*")]
-        if len(epochs) == 0:
-            raise FileNotFoundError(f"Experiment {xp_id} has no saved data")
-        epoch = max(epochs)
+        # if no epoch provided, just get the newest file
+        files = [f for f in xp_dir.glob("*.pt")]
+        checkpoint_file = max(files, key=lambda f: f.stat().st_mtime)
+    else:
+        checkpoint_file = list(xp_dir.glob(f"{epoch} *"))[0]
 
-    checkpont_file = list(xp_dir.glob(f"{epoch} *"))[0]
     state_dict = torch.load(
-        checkpont_file,
+        checkpoint_file,
         weights_only=True,
-        map_location=torch.device('cpu')
+        map_location=torch.device(device)
     )
-    print(f"Loaded model: {checkpont_file}")
-    return state_dict, xp_id, epoch
 
+    model = UNet(device=device)
+    model.load_state_dict(state_dict)
+
+    print(f"Loaded model: {checkpoint_file}")
+
+    return model
 
 
 def generate_and_log_on_cpu(
@@ -55,9 +74,8 @@ def generate_and_log_on_cpu(
     Restore the model from a checkpoint, generate some new images, plot and save
     as png. This function assumes checkpoints are saved in ROOT / checkpoints /
     """
-    model_state_dict, _, _ = get_latest_state_dict(xp_id=xp_id, epoch=epoch)
-    model = UNet(device="cpu")
-    model.load_state_dict(model_state_dict)
+    model = restore_latest_model(xp_id=xp_id, epoch=epoch)
+
     x_new = generate_images(
         model=model,
         num_steps=num_steps,

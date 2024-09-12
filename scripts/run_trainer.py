@@ -1,60 +1,45 @@
-import datetime
 import time
-from pathlib import Path
 
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
+from torch.utils.data import DataLoader
 
 from diffusion.apply_noise import apply_noise
 from diffusion.unet import UNet
-from dataset.reshape_images import FLOWERS_DATASET, load_celebA_10k, load_celebA
+from dataset.datasets import Flowers, CelebA, CelebA10k
+
+from folders import make_new_folders
 
 
-CHECKPOINTS_ROOT = Path(__file__).parent / "checkpoints"
-num_folders = len(list(CHECKPOINTS_ROOT.glob("*")))
-timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-MODEL_NAME = f"{num_folders}_{timestamp}"
-CHECKPOINT_DIR = CHECKPOINTS_ROOT / MODEL_NAME
-CHECKPOINT_DIR.mkdir()
+CHECKPOINT_DIR, LOG_DIR = make_new_folders()
 
 
 def train_model(
     *,
     model: torch.nn.Module,
     optimizer: torch.optim.AdamW,
-    dataset: torch.Tensor,
-    batchsize:int =16,
+    dataloader: DataLoader,
     epochs:int = 10,
-    device:str="cuda",
 ):
-    num_batches = 1 + dataset.shape[0] // batchsize
     model.train()
 
     epoch_start = time.time()
 
     for epoch in range(epochs):
-        epoch_time = time.time() - epoch_start
-
-        if epoch > 0:
-            checkpoint_file = CHECKPOINT_DIR / f"{epoch} epoch.pt"
-            torch.save(model.state_dict(), f=checkpoint_file)
-            print(
-                f"{epoch -1 }: epoch time: {epoch_time:.4} seconds\n"
-                f"Saved model: {checkpoint_file}\n"
-            )
-
         epoch_start = time.time()
-        for i in range(num_batches):
+        for i, x_input in enumerate(dataloader):
             batch_start = time.time()
 
-            # clean image and pure noise
-            x_input = dataset[i*batchsize:(i+1)*batchsize, :, :, :].to(device)
-            x_noisy, noise_sd, x_noise = apply_noise(x_input)
+            # clean images (batch, channels, height, width)
+            x_input = x_input.to(model.device)
+
+            # add noise to the images
+            x_diffused, x_noise, noise_sd = apply_noise(x_input)
 
             # forward
             optimizer.zero_grad()
-            x_noise_predicted = model(x_noisy, noise_sd**2)
+            x_noise_predicted = model(x_diffused, noise_sd**2)
             mse_loss = F.mse_loss(x_noise_predicted, x_noise)
 
             # backward
@@ -64,13 +49,24 @@ def train_model(
             batch_time = time.time() - batch_start
             print(f"{epoch}. {i}: {mse_loss:.3f} {batch_time:.3f} seconds")
 
+        # Track metrics, save checkpoint
+        epoch_time = time.time() - epoch_start
+        checkpoint_file = CHECKPOINT_DIR / f"{epoch} epoch.pt"
+        torch.save(model.state_dict(), f=checkpoint_file)
+        print(
+            f"{epoch}: epoch time: {epoch_time:.4} seconds\n"
+            f"Saved model: {checkpoint_file}\n"
+        )
+
 
 def main():
-
-    # dataset = FLOWERS_DATASET.to("cuda")
-    # dataset = load_celebA_10k()
-    dataset = load_celebA()
-
+    dataset = CelebA10k()
+    dataloader = DataLoader(
+        dataset,
+        batch_size=300,
+        pin_memory=True,
+        shuffle=True,
+    )
 
     model = UNet(device="cuda")
     model.train()
@@ -79,10 +75,10 @@ def main():
     train_model(
         model=model,
         optimizer=optimizer,
-        dataset=dataset,
-        batchsize=400,
+        dataloader=dataloader,
         epochs=10000,
     )
 
 
-main()
+if __name__=="__main__":
+    main()
