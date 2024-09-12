@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import torch
 from torch.utils.data import Dataset
 
-from prepare_datasets import (
+from .prepare_datasets import (
     FLOWERS_64_PTFILE,
     CELEBA_SMALL_PTFILE,
     CELEBA_SMALL_10K_PTFILE,

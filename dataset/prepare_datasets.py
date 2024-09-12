@@ -2,7 +2,7 @@ from pathlib import Path
 
 import torch
 
-from reshape_images import resize_images, stack_images_into_tensor
+from .reshape_images import resize_images, stack_images_into_tensor
 
 DATASET_DIR = Path(__file__).parent
 
