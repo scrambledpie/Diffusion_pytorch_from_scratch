@@ -8,14 +8,7 @@ import torch.nn.functional as F
 
 from diffusion.apply_noise import apply_noise
 from diffusion.unet import UNet
-from dataset.reshape_images import FLOWERS_DATASET
-
-def print_shape(params_list: list[torch.tensor]):
-    if isinstance(params_list, list):
-        return [print_shape(p) for p in params_list]
-
-    if isinstance(params_list, torch.Tensor):
-        return tuple(params_list.shape)
+from dataset.reshape_images import FLOWERS_DATASET, load_celebA_10k, load_celebA
 
 
 CHECKPOINTS_ROOT = Path(__file__).parent / "checkpoints"
@@ -74,22 +67,22 @@ def train_model(
 
 def main():
 
-    dataset = FLOWERS_DATASET.to("cuda")
-    print(dataset.shape)
+    # dataset = FLOWERS_DATASET.to("cuda")
+    # dataset = load_celebA_10k()
+    dataset = load_celebA()
+
 
     model = UNet(device="cuda")
-    model.train(False)
-    optimizer = optim.AdamW(model.parameters(), lr=0.001)
+    model.train()
+    optimizer = optim.AdamW(model.parameters(), lr=0.0001)
 
     train_model(
         model=model,
         optimizer=optimizer,
         dataset=dataset,
-        batchsize=819,
+        batchsize=400,
         epochs=10000,
     )
-
-
 
 
 main()
