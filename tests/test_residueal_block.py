@@ -2,10 +2,10 @@ import unittest
 
 import torch
 
-from diffusion.blocks import (
-    create_downblock,
-    create_resblock,
-    create_upblock,
+from diffusion.blockclasses import (
+    DownBlock,
+    ResBlock,
+    UpBlock,
 )
 
 
@@ -14,11 +14,11 @@ class TestBlocks(unittest.TestCase):
         """ Make sure the residual block preserves shape """
         x_minibatch = torch.rand((128, 3, 63, 63))
 
-        r1_block = create_resblock(in_channels=3, out_channels=3, device="cpu")
+        r1_block = ResBlock(in_channels=3, out_channels=3, device="cpu")
         x_1 = r1_block(x_minibatch)
         assert x_minibatch.shape == x_1.shape
 
-        r1_block = create_resblock(in_channels=3, out_channels=6, device="cpu")
+        r1_block = ResBlock(in_channels=3, out_channels=6, device="cpu")
         x_1 = r1_block(x_minibatch)
         for i in range(4):
             if i ==1:
@@ -35,10 +35,10 @@ class TestBlocks(unittest.TestCase):
         x_minibatch = torch.rand((batch_size, num_channels, height, width))
 
         # instantaite layers
-        d1_block = create_downblock(
+        d1_block = DownBlock(
             in_channels=3, out_channels=6, rblocks=2, device="cpu"
         )
-        u1_block = create_upblock(
+        u1_block = UpBlock(
             in_channels=6,
             downblock_channels=6,
             out_channels=num_channels,

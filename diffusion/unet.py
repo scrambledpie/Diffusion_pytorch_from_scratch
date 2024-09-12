@@ -1,42 +1,42 @@
 import torch
 from torch import nn
 
-from .blocks import create_downblock, create_resblock, create_upblock
 from .noise_embedding import create_sin_embedding_fun
+
+from .blockclasses import ResBlock, DownBlock, UpBlock
 
 
 class UNet(nn.Module):
-    def __init__(self, device:str="cuda"):
+    def __init__(self, rblocks:int=3, device:str="cuda"):
         super(UNet, self).__init__()
 
         self.device = device
 
-        self.noise_upsample = nn.Upsample(size=64, mode='bilinear')
         self.c_start = nn.Conv2d(
             in_channels=3, out_channels=32, kernel_size=1, device=device
         )
 
-        kwargs = dict(rblocks=2, device=device)
+        kwargs = dict(rblocks=rblocks, device=device)
 
-        self.d1 = create_downblock(in_channels=64, out_channels=32, **kwargs)
-        self.d2 = create_downblock(in_channels=32, out_channels=64, **kwargs)
-        self.d3 = create_downblock(in_channels=64, out_channels=96, **kwargs)
+        self.d1 = DownBlock(in_channels=64, out_channels=32, **kwargs)
+        self.d2 = DownBlock(in_channels=32, out_channels=64, **kwargs)
+        self.d3 = DownBlock(in_channels=64, out_channels=96, **kwargs)
 
-        self.r1 = create_resblock(
+        self.r1 = ResBlock(
             in_channels=96, out_channels=128, device=device
         )
-        self.r2 = create_resblock(
+        self.r2 = ResBlock(
             in_channels=128, out_channels=128, device=device
         )
 
         # upblock take both x and downblock and concat as input
-        self.u3 = create_upblock(
+        self.u3 = UpBlock(
             in_channels=128, downblock_channels=96, out_channels=96, **kwargs
         )
-        self.u2 = create_upblock(
+        self.u2 = UpBlock(
             in_channels=96, downblock_channels=64, out_channels=64, **kwargs
         )
-        self.u1 = create_upblock(
+        self.u1 = UpBlock(
             in_channels=64, downblock_channels=32, out_channels=32, **kwargs
         )
 
@@ -57,8 +57,8 @@ class UNet(nn.Module):
     ) -> torch.tensor:
 
         assert x_input.shape[1] == 3
-        assert x_input.shape[2] == 64
-        assert x_input.shape[3] == 64
+        # assert x_input.shape[2] == 64
+        # assert x_input.shape[3] == 64
 
         assert noise_var.shape[0] == x_input.shape[0]
         assert noise_var.shape[1] == 1
@@ -68,7 +68,8 @@ class UNet(nn.Module):
         x_input, noise_var = x_input.to(self.device), noise_var.to(self.device)
 
         noise_emb = self.embedding_fun(noise_var)
-        noise_emb = self.noise_upsample(noise_emb)
+        nouse_upsample_layer = nn.Upsample(size=x_input.shape[2:], mode='bilinear')
+        noise_emb = nouse_upsample_layer(noise_emb)
 
         # (batch, 64, 64, 64)
         x = torch.cat([self.c_start(x_input), noise_emb], dim=1)
