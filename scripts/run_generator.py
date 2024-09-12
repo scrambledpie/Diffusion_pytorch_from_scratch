@@ -1,13 +1,10 @@
-from pathlib import Path
-
 import torch
-from tensorboardX import SummaryWriter
 
 from diffusion.generate import generate_images
 from diffusion.plotting import plot_images
 from diffusion.unet import UNet
 
-from folders import CHECKPOINTS_DIR
+from folders import CHECKPOINTS_DIR, PICS_DIR
 
 
 def restore_latest_model(
@@ -66,7 +63,6 @@ def generate_and_log_on_cpu(
     batch_size:int=25,
     height:int=109,
     width:int=89,
-    LOG_DIR:Path=None,
     seed:int=4,
     num_steps:int=20,
 ):
@@ -87,24 +83,22 @@ def generate_and_log_on_cpu(
     x_new_reshape = x_new.reshape((-1, 3, height, width))
 
     plot_images(
-        x_new_reshape,
-        f"pics/celebA_{xp_id}_{epoch}_seed_{seed}.png",
+        x=x_new_reshape,
+        filename=PICS_DIR / f"{xp_id}_{epoch}_seed_{seed}.png",
         ncol=num_steps,
         nrow=batch_size,
     )
 
-    if LOG_DIR is not None:
-        writer = SummaryWriter(log_dir=LOG_DIR)
-        for i in range(batch_size):
-            writer.add_images(f"generated {i}", x_new[i, :, :, :, :], epoch)
-
 
 if __name__=="__main__":
+    # xp 92 was trained on celebA, height=109, width=89
     generate_and_log_on_cpu(
         xp_id=92,
         epoch=38,
         height=109,
         width=89,
-        seed=10,
+        seed=19,
+        batch_size=2,
+        num_steps=10,
     )
 
