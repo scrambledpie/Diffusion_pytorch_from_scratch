@@ -2,7 +2,7 @@ import torch
 
 from diffusion.generate import generate_images
 from diffusion.plotting import plot_images
-from diffusion.unet import UNet
+from diffusion.unet.unet import UNet
 
 from folders import CHECKPOINTS_DIR, PICS_DIR
 

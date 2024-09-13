@@ -5,8 +5,8 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from diffusion.apply_noise import apply_noise
-from diffusion.unet import UNet
+from diffusion.noise_schedule import apply_noise
+from diffusion.unet.unet import UNet
 from dataset.datasets import Flowers, CelebA, CelebA10k
 
 from folders import make_new_folders

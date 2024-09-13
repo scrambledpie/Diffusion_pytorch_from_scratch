@@ -6,7 +6,7 @@ import torch
 
 def plot_images(
     x: torch.Tensor,
-    filename:Path=Path("img.png"),
+    filename:Path,
     ncol:int=5,
     nrow:int=5,
 ) -> None:

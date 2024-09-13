@@ -2,11 +2,9 @@ import unittest
 
 import torch
 
-from diffusion.blockclasses import (
-    DownBlock,
-    ResBlock,
-    UpBlock,
-)
+from diffusion.unet.residualblock import ResBlock
+from diffusion.unet.downblock import DownBlock
+from diffusion.unet.upblock import UpBlock
 
 
 class TestBlocks(unittest.TestCase):
