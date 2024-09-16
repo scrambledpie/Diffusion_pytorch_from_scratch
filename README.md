@@ -5,6 +5,11 @@ A casual implementation of the image generative AI method diffusion. This code i
 - image generation
 - this has not been finetuned or hyper parameter optimized, it is a quick and dirty implementaion to teaching/learning.
 
+# Setup
+ - install [PyTorch](https://pytorch.org/) as appropriate for your system
+ - install other modules `python -m pip install numpy matplotlib tensorboard pytest`
+ - optionally run the (very basic) unit tests `pytest`
+
 # Datasets
 Currently, two datasets are setup, see `/dataset/README.md` for details on data download and preparation
 - Oxford Flowers: 64 X 64 pixel images
