@@ -3,7 +3,7 @@ A casual implementation of the image generative AI method diffusion. This code i
 - all in basic pytorch
 - single and multi GPU training with pytorch's distributed data parallel DDP (TODO: use [lightening](https://lightning.ai/docs/pytorch/stable/))
 - image generation
-- this has not been finetuned or hyper parameter optimized, it is a quick and dirty implementaion to teaching/learning.
+- this has not been finetuned or hyper parameter optimized, it is a quick and dirty implementation for teaching/learning.
 
 
 ![CelebA generated images](pics/92_38_seed_19.png)
