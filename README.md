@@ -1,4 +1,7 @@
 # Diffusion in Pytorch
+
+![CelebA generated images](pics/92_38_seed_19.png)
+
 A casual implementation of the image generative AI method diffusion. This code implements U-Net the is trained to predict noise in an image. At inference time, this can be used to predict and subsequently incrementally subtract the noise from an image of pure noise, slowly revealing the "signal" underneath. The result is a completely new signal, a new flower/face image.
 - all in basic pytorch
 - single and multi GPU training with pytorch's distributed data parallel DDP (TODO: use [lightening](https://lightning.ai/docs/pytorch/stable/))
@@ -26,6 +29,7 @@ All experiments were run on PC with a Ryzen 9 5950X, 64GB RAM and 2 X Nvidia RTX
 
 Image generation only takes a few seconds, (yes even on CPU).
 
-![CelebA generated images](pics/92_38_seed_19.png)
+
+
 
 
