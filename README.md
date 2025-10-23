@@ -6,11 +6,17 @@ A casual implementation of the image generative AI method diffusion. This code i
 - this has not been finetuned or hyper parameter optimized, it is a quick and dirty implementaion to teaching/learning.
 
 # Datasets
-Currently, two datasets are setup, see `/dataset/README.md` for details on data download and preparation
+Currently, two datasets are setup, see `src/dataset/README.md` for details on data download and preparation
 - Oxford Flowers: 64 X 64 pixel images
 - celebA: 109 X 89 pixel images
 
 # Running
+- Install `uv` from [astral](https://docs.astral.sh/uv/getting-started/installation/): `curl -LsSf https://astral.sh/uv/install.sh | sh`
+```
+uv venv
+uv pip install -e .
+uv run pytest
+```
 Once data is ready, `/scripts/` folder has all the entry points to train the model and generate images.
 - `folders.py` contains model checkpoint and logging folder names for scripts to import
 - `run_trainer.py` (RECOMENDED) trains the UNet on a single GPU

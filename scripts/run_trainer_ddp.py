@@ -30,7 +30,7 @@ def ddp_setup(rank, world_size):
 # DDP Boiler Plate End
 
 
-def main(rank:int, world_size:int=2):
+def main(rank:int, world_size:int=4):
     ddp_setup(rank=rank, world_size=world_size)
     dataset = CelebA10k()
     dataloader = DataLoader(
